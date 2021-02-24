@@ -1,6 +1,9 @@
+#!/bin/python3
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import time
+import sys
+
 class TGRMqtt:
     def __init__(self, ipStr, port, username, password):
         self.client = mqtt.Client()
@@ -19,6 +22,16 @@ class TGRMqtt:
 def on_message_print(client, userdata, message):
         print("%s %s" % (message.topic, message.payload))
 
-tgrMqtt = TGRMqtt("192.168.0.15", 1883, "tgr_user", "tgr_pass")
-tgrMqtt.publish("led/control","toggle1")
-tgrMqtt.subscribe(on_message_print, "led/status")
+if __name__ == "__main__":
+    opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+    args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+    if "--pub" in opts:
+        tgrMqtt = TGRMqtt("192.168.0.15", 1883, "tgr_user", "tgr_pass")
+        tgrMqtt.publish("led/control",args[0])
+    elif "--sub" in opts:
+        print(" ".join(arg.upper() for arg in args))
+        tgrMqtt = TGRMqtt("192.168.0.15", 1883, "tgr_user", "tgr_pass")
+        tgrMqtt.subscribe(on_message_print, "led/status")
+    else:
+        raise SystemExit(f"Usage: {sys.argv[0]} (--pub | --sub ) <arguments>...")
+
